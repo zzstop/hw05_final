@@ -24,16 +24,18 @@ def server_error(request):
     return render(request, 'misc/500.html', status=500)
 
 
-def add_comment(request, post):
+@login_required
+def add_comment(request, username, post_id):
     """Add a new comment from an authorized user."""
     form = CommentForm(request.POST or None)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = request.user
-        comment.post = post
+        comment.post = get_object_or_404(Post, pk=post_id)
         comment.save()
+        return redirect('posts:post', username=username, post_id=post_id)
     form = CommentForm()
-    return form
+    return render(request, 'includes/comments.html', {'form': form})
 
 
 def index(request):
@@ -96,7 +98,7 @@ def post_view(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id, author__username=username)
     author = post.author
     comments = post.comments.all()
-    form = add_comment(request, post)
+    form = CommentForm()
     context = {
         'form': form,
         'post': post,
