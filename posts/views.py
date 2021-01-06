@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommentForm, PostForm
-from .models import Group, Post
+from .models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -34,8 +34,7 @@ def add_comment(request, username, post_id):
         comment.post = get_object_or_404(Post, pk=post_id)
         comment.save()
         return redirect('posts:post', username=username, post_id=post_id)
-    form = CommentForm()
-    return render(request, 'includes/comments.html', {'form': form})
+    return render(request, 'includes/comments.html')
 
 
 def index(request):
@@ -81,6 +80,7 @@ def new_post(request):
 def profile(request, username):
     """Show all user posts on profile page."""
     author = get_object_or_404(User, username=username)
+    following = author.following.count()
     post_list = author.posts.all()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
@@ -89,6 +89,7 @@ def profile(request, username):
         'page': page,
         'author': author,
         'paginator': paginator,
+        'following': following,
     }
     return render(request, 'profile.html', context)
 
@@ -125,3 +126,37 @@ def post_edit(request, username, post_id):
         'form': form,
     }
     return render(request, 'new_post.html', context)
+
+
+@login_required
+def follow_index(request):
+    # информация о текущем пользователе доступна в переменной request.user
+    # ...
+    return render(request, "follow.html", {...})
+
+
+@login_required
+def profile_follow(request, username):
+    """Subscribe authorised user to author."""
+    user = get_object_or_404(User, username=request.user)
+    author = get_object_or_404(User, username=username)
+    if (user == author) or (Follow.objects.filter(
+            user=user, author=author).exists()):
+        return redirect('posts:profile', username=username)
+    if user != author:
+        Follow(user=user, author=author).save()
+        return redirect('posts:profile', username=username)
+    return render(request, 'includes/follow_unfollow.html')
+
+
+@login_required
+def profile_unfollow(request, username):
+    """Unsubscribe authorised user from author."""
+    user = get_object_or_404(User, username=request.user)
+    author = get_object_or_404(User, username=username)
+    unnecessary_connection = get_object_or_404(
+        Follow, user=user, author=author)
+    if unnecessary_connection:
+        unnecessary_connection.delete()
+        return redirect('posts:profile', username=username)
+    return render(request, 'includes/follow_unfollow.html')
