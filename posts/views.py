@@ -67,8 +67,9 @@ def new_post(request):
 def profile(request, username):
     """Show all user posts on profile page."""
     author = get_object_or_404(User, username=username)
-    #user = get_object_or_404(User, username=request.user)
-    #connection = Follow.objects.filter(user=user, author=author).exists()
+    #if request.user.is_authenticated:
+    #    user = get_object_or_404(User, username=request.user.username)
+    #    connection = Follow.objects.filter(user=user, author=author).exists()
     post_list = author.posts.all()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
@@ -133,7 +134,7 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    """Show all posts of all following authors."""
+    """Show all posts of all following authors to authorised user."""
     authors = []
     authors_id = Follow.objects.filter(user=request.user).in_bulk()
     for item in authors_id:
@@ -152,7 +153,7 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     """Subscribe authorised user to author."""
-    user = get_object_or_404(User, username=request.user)
+    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
     if (user == author) or (Follow.objects.filter(
             user=user, author=author).exists()):
@@ -166,7 +167,7 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     """Unsubscribe authorised user from author."""
-    user = get_object_or_404(User, username=request.user)
+    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
     unnecessary_connection = get_object_or_404(
         Follow, user=user, author=author)
