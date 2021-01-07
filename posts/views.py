@@ -156,8 +156,8 @@ def profile_follow(request, username):
     """Subscribe authorised user to author."""
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    if (user == author) or (Follow.objects.filter(
-            user=user, author=author).exists()):
+    connection = Follow.objects.filter(user=user, author=author)
+    if (user == author) or (connection.exists()):
         return redirect('posts:profile', username=username)
     if user != author:
         Follow(user=user, author=author).save()
