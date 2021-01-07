@@ -71,21 +71,16 @@ def profile(request, username):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    if request.user.is_authenticated:
-        user = get_object_or_404(User, username=request.user.username)
-        connection = Follow.objects.filter(user=user, author=author).exists()
-        context = {
-            'page': page,
-            'author': author,
-            'paginator': paginator,
-            'connection': connection,
-        }
-        return render(request, 'profile.html', context)
     context = {
         'page': page,
         'author': author,
         'paginator': paginator,
     }
+    if request.user.is_authenticated:
+        user = get_object_or_404(User, username=request.user.username)
+        subscribe = Follow.objects.filter(user=user, author=author).exists()
+        context['subscribe'] = subscribe
+        return render(request, 'profile.html', context)
     return render(request, 'profile.html', context)
 
 
