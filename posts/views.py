@@ -122,7 +122,7 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     """Add a new comment from an authorized user."""
     form = CommentForm(request.POST or None)
-    if form.errors:
+    if (form.errors) or (request.method == 'GET'):
         return redirect('posts:post', username=username, post_id=post_id)
     if form.is_valid():
         comment = form.save(commit=False)
