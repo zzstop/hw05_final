@@ -80,7 +80,8 @@ def new_post(request):
 def profile(request, username):
     """Show all user posts on profile page."""
     author = get_object_or_404(User, username=username)
-    following = author.following.count()
+    #user = get_object_or_404(User, username=request.user)
+    #connection = Follow.objects.filter(user=user, author=author).exists()
     post_list = author.posts.all()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
@@ -89,7 +90,7 @@ def profile(request, username):
         'page': page,
         'author': author,
         'paginator': paginator,
-        'following': following,
+    #    'connection': connection,
     }
     return render(request, 'profile.html', context)
 
@@ -130,9 +131,20 @@ def post_edit(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
-    # ...
-    return render(request, "follow.html", {...})
+    """Show all posts of all following authors."""
+    authors = []
+    authors_id = Follow.objects.filter(user=request.user).in_bulk()
+    for item in authors_id:
+        authors.append(authors_id[item].author)
+    post_list = Post.objects.filter(author__in=authors)
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    context = {
+        'page': page,
+        'paginator': paginator,
+    }
+    return render(request, 'follow.html', context)
 
 
 @login_required
