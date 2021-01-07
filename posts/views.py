@@ -24,19 +24,6 @@ def server_error(request):
     return render(request, 'misc/500.html', status=500)
 
 
-@login_required
-def add_comment(request, username, post_id):
-    """Add a new comment from an authorized user."""
-    form = CommentForm(request.POST or None)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = get_object_or_404(Post, pk=post_id)
-        comment.save()
-        return redirect('posts:post', username=username, post_id=post_id)
-    return render(request, 'includes/comments.html')
-
-
 def index(request):
     """Collect 10 posts, sorted by time, on one page."""
     post_list = Post.objects.select_related('group')
@@ -127,6 +114,21 @@ def post_edit(request, username, post_id):
         'form': form,
     }
     return render(request, 'new_post.html', context)
+
+
+@login_required
+def add_comment(request, username, post_id):
+    """Add a new comment from an authorized user."""
+    form = CommentForm(request.POST or None)
+    if form.errors:
+        return redirect('posts:post', username=username, post_id=post_id)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = get_object_or_404(Post, pk=post_id)
+        comment.save()
+        return redirect('posts:post', username=username, post_id=post_id)
+    return render(request, 'includes/comments.html')
 
 
 @login_required
