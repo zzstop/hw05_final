@@ -170,9 +170,10 @@ def profile_unfollow(request, username):
     """Unsubscribe authorised user from author."""
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    unnecessary_connection = get_object_or_404(
-        Follow, user=user, author=author)
-    if unnecessary_connection:
-        unnecessary_connection.delete()
+    exist_connection = Follow.objects.filter(user=user, author=author)
+    if not exist_connection.exists():
+        return redirect('posts:profile', username=username)
+    if exist_connection.exists():
+        exist_connection.delete()
         return redirect('posts:profile', username=username)
     return render(request, 'includes/follow_unfollow.html')
