@@ -4,6 +4,7 @@ import tempfile
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -172,6 +173,13 @@ class PostPagesTests(TestCase):
         self.assertEqual(
             len(response.context['page'].object_list), 0,
             'Пост попал на страницу другой группы.')
+
+    def test_cache_index_page_exist(self):
+        """Index page cache exist and contain post list."""
+        response = self.authorized_client.get(self.project_page['index'])
+        currect_context = response.context['page'][0]
+        currect_cache = cache.get('index_page')[0]
+        self.assertEqual(currect_context, currect_cache)
 
 
 class PaginatorViewsTest(TestCase):

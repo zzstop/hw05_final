@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -25,9 +26,13 @@ def server_error(request):
 
 
 def index(request):
-    """Collect 10 posts, sorted by time, on one page."""
+    """
+    Collect 10 posts, sorted by time, on one page.
+    Also cache post list for 20 seconds.
+    """
     post_list = Post.objects.select_related('group')
-    paginator = Paginator(post_list, 10)
+    cache.set('index_page', post_list, 20)
+    paginator = Paginator(cache.get('index_page'), 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
