@@ -109,7 +109,7 @@ class PostURLTests(TestCase):
             'Адрес /Artur/1/edit// недоступен '
             'для авторизованного автора поста.')
 
-    def test_edit_post_url_exists_authorized_post_author1(self):
+    def test_edit_post_url_exists_authorized_post_another_author(self):
         """
         Url 'post_edit' unavailable to authorized user,
         which is different from the author of this post,
