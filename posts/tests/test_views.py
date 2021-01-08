@@ -176,10 +176,13 @@ class PostPagesTests(TestCase):
 
     def test_cache_index_page_exist(self):
         """Index page cache exist and contain post list."""
-        response = self.authorized_client.get(self.project_page['index'])
+        cache_page = self.project_page['index']
+        response = self.authorized_client.get(cache_page)
         currect_context = response.context['page'][0]
         currect_cache = cache.get('index_page')[0]
-        self.assertEqual(currect_context, currect_cache)
+        self.assertEqual(
+            currect_context, currect_cache,
+            f'Страница "{cache_page}" не кешируется.')
 
 
 class PaginatorViewsTest(TestCase):
