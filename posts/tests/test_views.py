@@ -39,7 +39,6 @@ class PostPagesTests(TestCase):
         super().tearDownClass()
 
     def setUp(self):
-        self.follower = User.objects.create_user(username='Miniput')
         self.author = User.objects.create_user(username='Artur')
         self.group = Group.objects.create(
             title='Тестовая группа',
@@ -67,11 +66,11 @@ class PostPagesTests(TestCase):
                 'username': self.author.username}),
             'profile_unfollow': reverse('posts:profile_unfollow', kwargs={
                 'username': self.author.username}),
+            'add_comment': reverse('posts:add_comment', kwargs={
+                'username': self.author.username, 'post_id': self.post.pk}),
         }
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
-        self.follower_client = Client()
-        self.follower_client.force_login(self.follower)
 
     def test_pages_use_correct_template(self):
         """Pages use appropriate template."""
@@ -193,21 +192,27 @@ class PostPagesTests(TestCase):
 
     def test_authorized_user_can_subscribe_and_unsubscribe_other_users(self):
         """Authorized user can subscribe and unsubscribe from another users."""
+        follower = User.objects.create_user(username='Miniput')
+        follower_client = Client()
+        follower_client.force_login(follower)
         follow_page = self.project_page['profile_follow']
         unfollow_page = self.project_page['profile_unfollow']
 
-        response = self.follower_client.get(follow_page) # noqa
+        response = follower_client.get(follow_page) # noqa
         exist_connection = Follow.objects.filter(
-            user=self.follower, author=self.author).exists()
-        self.assertTrue(exist_connection, 'Нельзя подписаться на автора.')
+            user=follower, author=self.author).exists()
+        self.assertTrue(
+            exist_connection,
+            'Нельзя подписаться на автора, страница'
+            f' "{follow_page}" работает некорректно.')
 
-        response = self.follower_client.get(unfollow_page) # noqa
+        response = follower_client.get(unfollow_page) # noqa
         not_exist_connection = Follow.objects.filter(
-            user=self.follower, author=self.author).exists()
-        self.assertFalse(not_exist_connection, 'Нельзя отписаться от автора.')
-
-
-
+            user=follower, author=self.author).exists()
+        self.assertFalse(
+            not_exist_connection,
+            'Нельзя отписаться от автора, страница'
+            f' "{unfollow_page}" работает некорректно.')
 
 
 class PaginatorViewsTest(TestCase):

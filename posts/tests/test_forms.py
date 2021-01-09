@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Comment, Group, Post
 
 User = get_user_model()
 
@@ -124,3 +124,8 @@ class PostFormTests(TestCase):
         self.assertNotEqual(
             post.text, 'Тестовый текст',
             f'Форма на странице {edit_url} не изменяет запись.')
+
+    def test_anonymous_user_can_not_comment_post(self):
+        guest_client = Client()
+        response = 0
+        pass
