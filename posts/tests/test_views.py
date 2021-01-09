@@ -1,11 +1,13 @@
 import shutil
 import tempfile
+from unittest.case import expectedFailure
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.shortcuts import redirect
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -164,6 +166,38 @@ class PostPagesTests(TestCase):
                         form_field, expected,
                         f'Поле формы {value} на странице {page_url} '
                         f'не совпадает с заданным классом {expected}.')
+
+    def test_follow_page_show_correct_context_for_follower(self):
+        """Follow page of subscriber contain new post from following author."""
+        follow_page = reverse('posts:follow_index')
+        follower = User.objects.create_user(username='Miniput')
+        follower_client = Client()
+        follower_client.force_login(follower)
+        Follow.objects.create(
+            user=follower, author=self.author)
+        response = follower_client.get(follow_page)
+        currect_context = response.context['page'][0]
+        expected_context = self.post
+        self.assertEqual(
+            currect_context, expected_context,
+            f'На страницу ленты подписчика "{follow_page}"'
+            ' не выводится пост интересующего автора.')
+
+    def test_follow_page_show_correct_context_for_unfollow_user(self):
+        """
+        Follow page of unsubscribed user don't contain
+        new post from strange author.
+        """
+        follow_page = reverse('posts:follow_index')
+        unfollower = User.objects.create_user(username='Miniput')
+        unfollower_client = Client()
+        unfollower_client.force_login(unfollower)
+        response = unfollower_client.get(follow_page)
+        current_context = response.context['page']
+        self.assertEqual(
+            len(current_context), 0,
+            f'На страницу ленты подписчика "{follow_page}"'
+            ' выводится пост автора, на которого пользователь не подписан.')
 
     def test_group_page_do_not_include_post_with_another_group(self):
         """Post group match group of page."""
