@@ -24,3 +24,5 @@ db.sqlite3
 sent_emails
 
 .vscode
+
+run.sh
