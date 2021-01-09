@@ -66,8 +66,6 @@ class PostPagesTests(TestCase):
                 'username': self.author.username}),
             'profile_unfollow': reverse('posts:profile_unfollow', kwargs={
                 'username': self.author.username}),
-            'add_comment': reverse('posts:add_comment', kwargs={
-                'username': self.author.username, 'post_id': self.post.pk}),
         }
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
