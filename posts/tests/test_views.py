@@ -1,13 +1,11 @@
 import shutil
 import tempfile
-from unittest.case import expectedFailure
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.shortcuts import redirect
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -55,6 +53,7 @@ class PostPagesTests(TestCase):
         )
         self.project_page = {
             'index': reverse('posts:index'),
+            'follow_index': reverse('posts:follow_index'),
             'group_posts': reverse(
                 'posts:group_posts', kwargs={'slug': self.group.slug}),
             'new_post': reverse('posts:new_post'),
@@ -81,7 +80,8 @@ class PostPagesTests(TestCase):
             'post.html': (self.project_page['post'],),
             'new_post.html': (
                 self.project_page['new_post'],
-                self.project_page['post_edit'],)
+                self.project_page['post_edit'],),
+            'follow.html': (self.project_page['follow_index'],),
         }
         for template, reverse_name in templates_pages_names.items():
             for url_name in reverse_name:
@@ -169,7 +169,7 @@ class PostPagesTests(TestCase):
 
     def test_follow_page_show_correct_context_for_follower(self):
         """Follow page of subscriber contain new post from following author."""
-        follow_page = reverse('posts:follow_index')
+        follow_page = self.project_page['follow_index']
         follower = User.objects.create_user(username='Miniput')
         follower_client = Client()
         follower_client.force_login(follower)
@@ -188,7 +188,7 @@ class PostPagesTests(TestCase):
         Follow page of unsubscribed user don't contain
         new post from strange author.
         """
-        follow_page = reverse('posts:follow_index')
+        follow_page = self.project_page['follow_index']
         unfollower = User.objects.create_user(username='Miniput')
         unfollower_client = Client()
         unfollower_client.force_login(unfollower)

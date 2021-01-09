@@ -26,6 +26,7 @@ class PostURLTests(TestCase):
             'profile': '/Artur/',
             'post': '/Artur/1/',
             'post_edit': '/Artur/1/edit/',
+            'follow_index': '/follow/',
         }
         self.guest_client = Client()
         self.authorized_client = Client()
@@ -63,7 +64,8 @@ class PostURLTests(TestCase):
             'post.html': (self.project_page['post'],),
             'new_post.html': (
                 self.project_page['new_post'],
-                self.project_page['post_edit'],)
+                self.project_page['post_edit'],),
+            'follow.html': (self.project_page['follow_index'],),
         }
         for template, url in templates_url_names.items():
             for url_name in url:
@@ -80,10 +82,9 @@ class PostURLTests(TestCase):
         and redirect to login.
         """
         edit_pages = {
-            '/auth/login/?next=/new/':
-                self.project_page['new_post'],
+            self.project_page['new_post']: '/auth/login/?next=/new/',
         }
-        for redirect_page, page in edit_pages.items():
+        for page, redirect_page in edit_pages.items():
             with self.subTest(value=page):
                 response = self.guest_client.get(page, follow=True)
                 self.assertRedirects(response, redirect_page)
