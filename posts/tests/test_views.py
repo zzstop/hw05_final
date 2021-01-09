@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -39,6 +39,7 @@ class PostPagesTests(TestCase):
         super().tearDownClass()
 
     def setUp(self):
+        self.follower = User.objects.create_user(username='Miniput')
         self.author = User.objects.create_user(username='Artur')
         self.group = Group.objects.create(
             title='Тестовая группа',
@@ -62,9 +63,15 @@ class PostPagesTests(TestCase):
                 'username': self.author.username, 'post_id': self.post.pk}),
             'post_edit': reverse('posts:post_edit', kwargs={
                 'username': self.author.username, 'post_id': self.post.pk}),
+            'profile_follow': reverse('posts:profile_follow', kwargs={
+                'username': self.author.username}),
+            'profile_unfollow': reverse('posts:profile_unfollow', kwargs={
+                'username': self.author.username}),
         }
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
+        self.follower_client = Client()
+        self.follower_client.force_login(self.follower)
 
     def test_pages_use_correct_template(self):
         """Pages use appropriate template."""
@@ -183,6 +190,24 @@ class PostPagesTests(TestCase):
         self.assertEqual(
             currect_context, currect_cache,
             f'Страница "{cache_page}" не кешируется.')
+
+    def test_authorized_user_can_subscribe_and_unsubscribe_other_users(self):
+        """Authorized user can subscribe and unsubscribe from another users."""
+        follow_page = self.project_page['profile_follow']
+        unfollow_page = self.project_page['profile_unfollow']
+
+        response = self.follower_client.get(follow_page) # noqa
+        exist_connection = Follow.objects.filter(
+            user=self.follower, author=self.author).exists()
+        self.assertTrue(exist_connection, 'Нельзя подписаться на автора.')
+
+        response = self.follower_client.get(unfollow_page) # noqa
+        not_exist_connection = Follow.objects.filter(
+            user=self.follower, author=self.author).exists()
+        self.assertFalse(not_exist_connection, 'Нельзя отписаться от автора.')
+
+
+
 
 
 class PaginatorViewsTest(TestCase):
