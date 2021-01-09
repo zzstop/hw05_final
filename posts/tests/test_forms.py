@@ -140,13 +140,18 @@ class PostFormTests(TestCase):
             'Неавторизованный пользователь смог оставить комментарий.')
 
     def test_authorized_user_can_comment_post(self):
-        """Authorized user can comment post."""
-        comment_url = reverse('posts:add_comment', kwargs={
-            'username': self.author.username, 'post_id': self.post.pk})
+        """Authorized user can comment post and redirect to the 'post' page."""
+        url_kwargs = {
+            'username': self.author.username,
+            'post_id': self.post.pk,
+        }
+        comment_url = reverse('posts:add_comment', kwargs=url_kwargs)
+        post_url = reverse('posts:post', kwargs=url_kwargs)
         response = self.authorized_client.post( # noqa
             comment_url,
             {'text': 'Тестовый комментарий'},
             follow=True)
+        self.assertRedirects(response, post_url)
         comment = Comment.objects.filter(pk=1).exists()
         self.assertTrue(
             comment,
