@@ -82,8 +82,8 @@ def profile(request, username):
         'paginator': paginator,
     }
     if request.user.is_authenticated:
-        user = get_object_or_404(User, username=request.user.username)
-        subscribe = Follow.objects.filter(user=user, author=author).exists()
+        subscribe = Follow.objects.filter(
+            user=request.user, author=author).exists()
         context['subscribe'] = subscribe
         return render(request, 'profile.html', context)
     return render(request, 'profile.html', context)
