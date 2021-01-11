@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Comment, Group, Post
+from posts.models import Group, Post
 
 User = get_user_model()
 
@@ -19,11 +19,6 @@ class PostFormTests(TestCase):
             title='Тестовая группа',
             slug='test-slug',
             description='Тестовое описание'
-        )
-        self.post = Post.objects.create(
-            text='Тестовый текст',
-            author=self.author,
-            group=self.group
         )
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
@@ -39,7 +34,7 @@ class PostFormTests(TestCase):
             page_url,
             {'text': 'Пост без группы'},
             follow=True)
-        post = Post.objects.get(pk=2)
+        post = Post.objects.get(pk=1)
         self.assertRedirects(response, reverse('posts:index'))
         self.assertEqual(
             Post.objects.count(), post_count+1,
@@ -60,7 +55,7 @@ class PostFormTests(TestCase):
             page_url,
             {'text': 'Пост c группой', 'group': self.group.id},
             follow=True)
-        post = Post.objects.get(pk=2)
+        post = Post.objects.get(pk=1)
         self.assertRedirects(response, reverse('posts:index'))
         self.assertEqual(
             Post.objects.count(), post_count+1,
@@ -96,7 +91,7 @@ class PostFormTests(TestCase):
             page_url,
             {'text': 'Пост c группой', 'image': uploaded},
             follow=True)
-        post = Post.objects.get(pk=2)
+        post = Post.objects.get(pk=1)
         self.assertRedirects(response, reverse('posts:index'))
         self.assertEqual(
             Post.objects.count(), post_count+1,
@@ -110,49 +105,22 @@ class PostFormTests(TestCase):
 
     def test_edit_post(self):
         """Form change existing post and redirect to the 'post' page."""
+        post = Post.objects.create(
+            text='Тестовый текст',
+            author=self.author,
+            group=self.group
+        )
         post_url = reverse('posts:post', kwargs={
-            'username': self.author.username, 'post_id': self.post.pk})
+            'username': self.author.username, 'post_id': post.pk})
         edit_url = reverse('posts:post_edit', kwargs={
-            'username': self.author.username, 'post_id': self.post.pk})
+            'username': self.author.username, 'post_id': post.pk})
         response = self.authorized_client.post(
             edit_url,
             {'text': 'Обновленный тестовый текст'},
             follow=True
         )
-        post = Post.objects.get(pk=self.post.pk)
+        post = Post.objects.get(pk=post.pk)
         self.assertRedirects(response, post_url)
         self.assertNotEqual(
             post.text, 'Тестовый текст',
             f'Форма на странице {edit_url} не изменяет запись.')
-
-    def test_anonymous_user_can_not_comment_post(self):
-        """Anonymous user can't comment post."""
-        comment_url = reverse('posts:add_comment', kwargs={
-            'username': self.author.username, 'post_id': self.post.pk})
-        guest_client = Client()
-        guest_client.post(
-            comment_url,
-            {'text': 'Тестовый комментарий'},
-            follow=True)
-        comment = Comment.objects.filter(pk=1).exists()
-        self.assertFalse(
-            comment,
-            'Неавторизованный пользователь смог оставить комментарий.')
-
-    def test_authorized_user_can_comment_post(self):
-        """Authorized user can comment post and redirect to the 'post' page."""
-        url_kwargs = {
-            'username': self.author.username,
-            'post_id': self.post.pk,
-        }
-        comment_url = reverse('posts:add_comment', kwargs=url_kwargs)
-        post_url = reverse('posts:post', kwargs=url_kwargs)
-        response = self.authorized_client.post(
-            comment_url,
-            {'text': 'Тестовый комментарий'},
-            follow=True)
-        self.assertRedirects(response, post_url)
-        comment = Comment.objects.filter(pk=1).exists()
-        self.assertTrue(
-            comment,
-            'Авторизованный пользователь не может оставить комментарий.')

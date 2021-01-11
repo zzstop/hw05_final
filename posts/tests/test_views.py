@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Follow, Group, Post
+from posts.models import Comment, Follow, Group, Post
 
 User = get_user_model()
 
@@ -67,6 +67,8 @@ class PostPagesTests(TestCase):
                 'username': self.author.username}),
             'profile_unfollow': reverse('posts:profile_unfollow', kwargs={
                 'username': self.author.username}),
+            'add_comment': reverse('posts:add_comment', kwargs={
+                'username': self.author.username, 'post_id': self.post.pk}),
         }
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
@@ -241,6 +243,33 @@ class PostPagesTests(TestCase):
             not_exist_connection,
             'Нельзя отписаться от автора, страница'
             f' "{unfollow_page}" работает некорректно.')
+
+    def test_anonymous_user_can_not_comment_post(self):
+        """Anonymous user can't comment post."""
+        comment_url = self.project_page['add_comment']
+        guest_client = Client()
+        guest_client.post(
+            comment_url,
+            {'text': 'Тестовый комментарий'},
+            follow=True)
+        comment = Comment.objects.filter(pk=1).exists()
+        self.assertFalse(
+            comment,
+            'Неавторизованный пользователь смог оставить комментарий.')
+
+    def test_authorized_user_can_comment_post(self):
+        """Authorized user can comment post and redirect to the 'post' page."""
+        comment_url = self.project_page['add_comment']
+        post_url = self.project_page['post']
+        response = self.authorized_client.post(
+            comment_url,
+            {'text': 'Тестовый комментарий'},
+            follow=True)
+        self.assertRedirects(response, post_url)
+        comment = Comment.objects.filter(pk=1).exists()
+        self.assertTrue(
+            comment,
+            'Авторизованный пользователь не может оставить комментарий.')
 
 
 class PaginatorViewsTest(TestCase):
