@@ -126,16 +126,14 @@ def post_edit(request, username, post_id):
 @login_required
 def add_comment(request, username, post_id):
     """Add a new comment from an authorized user."""
+    post = get_object_or_404(Post, author__username=username, pk=post_id)
     form = CommentForm(request.POST or None)
-    if (form.errors) or (request.method == 'GET'):
-        return redirect('posts:post', username=username, post_id=post_id)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = request.user
-        comment.post = get_object_or_404(Post, pk=post_id)
+        comment.post = post
         comment.save()
-        return redirect('posts:post', username=username, post_id=post_id)
-    return render(request, 'includes/comments.html')
+    return redirect('posts:post', username=username, post_id=post_id)
 
 
 @login_required
