@@ -60,7 +60,7 @@ def group_posts(request, slug):
 @login_required
 def new_post(request):
     """Add a new post from an authorized user."""
-    form = PostForm(request.POST or None)
+    form = PostForm(request.POST or None, files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
