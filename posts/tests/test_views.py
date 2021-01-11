@@ -231,7 +231,9 @@ class PostPagesTests(TestCase):
 
     def test_authorized_user_can_unsubscribe_other_users(self):
         """Authorized user can unsubscribe from another users."""
+        follow_page = self.project_page['profile_follow']
         unfollow_page = self.project_page['profile_unfollow']
+        self.follower_client.get(follow_page)
         self.follower_client.get(unfollow_page)
         not_exist_connection = Follow.objects.filter(
             user=self.follower, author=self.author).exists()
