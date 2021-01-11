@@ -153,15 +153,10 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     """Subscribe authorised user to author."""
-    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    connection = Follow.objects.filter(user=user, author=author)
-    if (user == author) or (connection.exists()):
-        return redirect('posts:profile', username=username)
-    if user != author:
-        Follow(user=user, author=author).save()
-        return redirect('posts:profile', username=username)
-    return render(request, 'includes/follow_unfollow.html')
+    if request.user != author:
+        Follow.objects.get_or_create(user=request.user, author=author)
+    return redirect('posts:profile', username=username)
 
 
 @login_required
