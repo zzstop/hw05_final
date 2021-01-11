@@ -139,11 +139,7 @@ def add_comment(request, username, post_id):
 @login_required
 def follow_index(request):
     """Show all posts of all following authors to authorised user."""
-    authors = []
-    authors_id = Follow.objects.filter(user=request.user).in_bulk()
-    for item in authors_id:
-        authors.append(authors_id[item].author)
-    post_list = Post.objects.filter(author__in=authors)
+    post_list = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
