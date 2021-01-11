@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -31,8 +30,7 @@ def index(request):
     Also cache post list for 20 seconds.
     """
     post_list = Post.objects.select_related('group')
-    cache.set('index_page', post_list, 20)
-    paginator = Paginator(cache.get('index_page'), 10)
+    paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
@@ -162,12 +160,6 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     """Unsubscribe authorised user from author."""
-    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    exist_connection = Follow.objects.filter(user=user, author=author)
-    if not exist_connection.exists():
-        return redirect('posts:profile', username=username)
-    if exist_connection.exists():
-        exist_connection.delete()
-        return redirect('posts:profile', username=username)
-    return render(request, 'includes/follow_unfollow.html')
+    Follow.objects.filter(user=request.user, author=author).delete()
+    return redirect('posts:profile', username=username)
