@@ -130,7 +130,7 @@ class PostFormTests(TestCase):
         comment_url = reverse('posts:add_comment', kwargs={
             'username': self.author.username, 'post_id': self.post.pk})
         guest_client = Client()
-        response = guest_client.post( # noqa
+        guest_client.post(
             comment_url,
             {'text': 'Тестовый комментарий'},
             follow=True)
@@ -147,7 +147,7 @@ class PostFormTests(TestCase):
         }
         comment_url = reverse('posts:add_comment', kwargs=url_kwargs)
         post_url = reverse('posts:post', kwargs=url_kwargs)
-        response = self.authorized_client.post( # noqa
+        response = self.authorized_client.post(
             comment_url,
             {'text': 'Тестовый комментарий'},
             follow=True)
