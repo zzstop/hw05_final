@@ -13,6 +13,16 @@ User = get_user_model()
 
 
 class PostFormTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.author = User.objects.create_user(username='Artur')
         self.group = Group.objects.create(
@@ -70,8 +80,6 @@ class PostFormTests(TestCase):
         Valid form create a new post with image
         and redirect to the 'index' page.
         """
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
         page_url = reverse('posts:new_post')
         post_count = Post.objects.count()
         small_gif = (
@@ -101,7 +109,22 @@ class PostFormTests(TestCase):
             post.text, 'Пост c группой',
             'Созданный с картинкой пост сохраняется с неправильными данными.')
 
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+    def test_create_post_with_uncorrect_image(self):
+        """
+        New post form don't create a new post with
+        uncorrect image, raise error.
+        """
+        not_image = SimpleUploadedFile(
+            name='not_image',
+            content=b'file')
+        page_url = reverse('posts:new_post')
+        response = self.authorized_client.post(
+            page_url,
+            {'text': 'Пост с неправильной картинкой', 'image': not_image})
+        self.assertFormError(
+            response, 'form', 'image',
+            'Загрузите правильное изображение. Файл, который вы загрузили,'
+            ' поврежден или не является изображением.')
 
     def test_edit_post(self):
         """Form change existing post and redirect to the 'post' page."""
