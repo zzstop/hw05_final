@@ -210,15 +210,17 @@ class PostPagesTests(TestCase):
             len(response.context['page'].object_list), 0,
             'Пост попал на страницу другой группы.')
 
-    """def test_cache_index_page_exist(self):
-        Index page cache exist and contain post list.
+    def test_cache_index_page_exist(self):
+        """Index page cache exist."""
         cache_page = self.project_page['index']
-        response = self.authorized_client.get(cache_page)
-        current_context = response.context['page'][0]
-        current_cache = cache.get('index_page')[0]
+        cache_content = self.authorized_client.get(cache_page).content
+        Post.objects.create(
+            text='Пост для проверки кеша',
+            author=self.author)
+        new_content = self.authorized_client.get(cache_page).content
         self.assertEqual(
-            current_context, current_cache,
-            f'Страница "{cache_page}" не кешируется.')"""
+            cache_content, new_content,
+            f'Страница "{cache_page}" не кешируется.')
 
     def test_authorized_user_can_subscribe_other_users(self):
         """Authorized user can subscribe another users."""
