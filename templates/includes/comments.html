@@ -1,30 +1,30 @@
 {% load user_filters %}
 
 {% if user.is_authenticated %}
-<div class="card my-4">
-    <form method="post" action="{% url 'posts:add_comment' username=author post_id=post.id %}">
-        {% csrf_token %}
-        <h5 class="card-header">Добавить комментарий:</h5>
-        <div class="card-body">
-            <div class="form-group">
-                {{ form.text|addclass:"form-control" }}
+    <div class="card my-4">
+        <form method="post" action="{% url 'posts:add_comment' username=author post_id=post.id %}">
+            {% csrf_token %}
+            <h5 class="card-header">Добавить комментарий:</h5>
+            <div class="card-body">
+                <div class="form-group">
+                    {{ form.text|addclass:"form-control" }}
+                </div>
+                <button type="submit" class="btn btn-primary">Отправить</button>
             </div>
-            <button type="submit" class="btn btn-primary">Отправить</button>
-        </div>
-    </form>
-</div>
+        </form>
+    </div>
 {% endif %}
 
 {% for comment in comments %}
-<div class="media card mb-4">
-    <div class="media-body card-body">
-        <h5 class="mt-0">
-            <a href="{% url 'posts:profile' comment.author.username %}"
-               name="comment_{{ comment.id }}">
-                @{{ comment.author.username }}
-            </a>
-        </h5>
-        <p>{{ comment.text|linebreaksbr }}</p>
+    <div class="media card mb-4">
+        <div class="media-body card-body">
+            <h5 class="mt-0">
+                <a href="{% url 'posts:profile' comment.author.username %}"
+                name="comment_{{ comment.id }}">
+                    @{{ comment.author.username }}
+                </a>
+            </h5>
+            <p>{{ comment.text|linebreaksbr }}</p>
+        </div>
     </div>
-</div>
 {% endfor %}
