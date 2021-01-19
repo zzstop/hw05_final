@@ -26,3 +26,5 @@ sent_emails
 .vscode
 
 run.sh
+
+.coverage
