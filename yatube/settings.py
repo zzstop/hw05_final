@@ -7,10 +7,11 @@ SECRET_KEY = '^fp62gom&o%+@q5deh1(*&z8rqj-e$s^a855ckay(1!rpg2mvd'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "[::1]",
-    "testserver",
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+    '*',
 ]
 
 INSTALLED_APPS = [
