@@ -28,3 +28,4 @@ sent_emails
 run.sh
 
 .coverage
+htmlcov

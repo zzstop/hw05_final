@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 def page_not_found(request, exception):
-    """Show page not found (404) error"""
+    """Show 'page not found' (404) error"""
     return render(
         request,
         'misc/404.html',
@@ -20,7 +20,7 @@ def page_not_found(request, exception):
 
 
 def server_error(request):
-    """Show server error (500) error"""
+    """Show 'server error' (500) error"""
     return render(request, 'misc/500.html', status=500)
 
 
